@@ -7,53 +7,14 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.lib.colors import CMYKColor
 from svglib.svglib import svg2rlg
 from datetime import datetime
+from helpdful.test_data import data
+import webbrowser
 
 font_path = 'helpdful/resources/fonts/source-sans-pro-v11-latin-{}.ttf'
 
+
 def get_font(style):
     return 'source-sans-pro-v11-latin-{}'.format(style)
-
-data = {
-    "title": "Søknad om å beholde sykepenger utenfor Norge",
-    "date": datetime(2017, 2, 1),
-    "application_id": "3c87f6e2-66ee-4376-9d4d-2444dea8368e",
-    "person": {
-        "id": 12068745698,
-        "name": "Kari Normann Paulsrud Granholt"
-    },
-    "questions": [
-        {
-            "text": "Når skal du oppholde deg utenfor Norge?",
-            "type": "PERIODER",
-            "answer": "01.01.2017 – 31.01.2017"
-        },
-        {
-            "text": "Hvilket land skal du reise til?",
-            "type": "LAND",
-            "answer": "Tyskland"
-        },
-        {
-            "text": "Har du arbeidsgiver?",
-            "type": "CHECKBOKS",
-            "answer": "Ja"
-        },
-        {
-            "text": "Er du 100% sykmeldt?",
-            "type": "CHECKBOKS",
-            "answer": "Ja"
-        },
-        {
-            "text": "Før du reiser må du bekrefte at",
-            "information": [
-                "Oppholdet utenfor Norge ikke medfører at helsetilstanden din blir forverret",
-                "Oppholdet utenfor Norge ikke vil forlenge arbeidsuførheten din eller hindre planlagt behandling",
-                "Du har avklart dette med sykmelderen din"
-            ],
-            "type": "IKKE_RELEVANT",
-            "answer": "Jeg bekrefter at jeg har gjort med kjent med pliktene mine"
-        }
-    ],
-}
 
 
 def scale(drawing, scaling_factor):
@@ -76,7 +37,6 @@ def draw_header(canvas):
     canvas.drawString(85, 804, data["title"])
 
 def draw_personal_info(canvas, anchor=736):
-
     # draw a person icon
     person_icon = svg2rlg('helpdful/resources/Personikon.svg')
     scaled_person_icon = scale(person_icon, scaling_factor=1)
@@ -104,7 +64,6 @@ def draw_application_id(canvas, anchor=20):
     canvas.drawString(40, anchor, data["application_id"])
 
 def draw_questions(canvas, anchor=669):
-
     canvas.setFillColor(CMYKColor(0, 0, 0, 1))
 
     for question in data["questions"]:
@@ -120,13 +79,13 @@ def draw_questions(canvas, anchor=669):
             canvas.setFont(get_font('regular'), 10)
             canvas.drawString(60, anchor, question["answer"])
         elif question["type"] == "IKKE_RELEVANT":
-            anchor -= 10
+            anchor += 20
             for info in question["information"]:
                 information = Paragraph(info, getSampleStyleSheet()['Normal'], bulletText="●")
                 w, h = information.wrap(595.27, anchor)
-                information.drawOn(canvas, 45, anchor)
                 anchor -= h + 10
-            anchor -= 10
+                information.drawOn(canvas, 45, anchor)
+            anchor -= 20
             checkbox_icon = svg2rlg('helpdful/resources/Checkboks.svg')
             renderPDF.draw(checkbox_icon, canvas, 40, anchor-3)
             canvas.setFont(get_font('regular'), 10)
@@ -152,8 +111,9 @@ def run():
     draw_application_id(canvas)
 
     canvas.showPage()
-
     canvas.save()
+
+    webbrowser.open('test.pdf')
 
 if __name__ == '__main__':
     run()
