@@ -1,7 +1,7 @@
 from reportlab.pdfgen import canvas as canv
 from reportlab.graphics import renderPDF
 from reportlab.platypus import Paragraph
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import ParagraphStyle
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 from reportlab.lib.colors import CMYKColor
@@ -26,15 +26,26 @@ def scale(drawing, scaling_factor):
 def draw_header(canvas):
     # draw the header rectangle
     canvas.setFillColor(CMYKColor(0.2146, 0.0526, 0.0, 0.0314))
-    canvas.rect(0, 841.89-55, 595.27, 55, stroke=0, fill=1)
+
+    header_style = ParagraphStyle(
+        name='header',
+        fontName=get_font(700),
+        fontSize=16
+    )
+    header = Paragraph(data["title"], header_style)
+    w, h = header.wrap(450, 85)
+
+    header_height = 841.89-43-h
+    canvas.rect(0, header_height, 595.27, 43+h, stroke=0, fill=1)
 
     # draw a logo and the text
     canvas.setFillColor(CMYKColor(0, 0, 0, 1))
     canvas.setFont(get_font(700), 16)
     nav_logo = svg2rlg('helpdful/resources/Navlogo.svg')
     scaled_nav_logo = scale(nav_logo, scaling_factor=0.8)
-    renderPDF.draw(scaled_nav_logo, canvas, 40, 800)
-    canvas.drawString(85, 804, data["title"])
+    renderPDF.draw(scaled_nav_logo, canvas, 40, 806-(h/2))
+    header.drawOn(canvas, 85, 820-h)
+    return header_height
 
 def draw_personal_info(canvas, anchor=736):
     # draw a person icon
@@ -79,10 +90,16 @@ def draw_questions(canvas, anchor=669):
             canvas.setFont(get_font('regular'), 10)
             canvas.drawString(60, anchor, question["answer"])
         elif question["type"] == "IKKE_RELEVANT":
+            info_style = ParagraphStyle(
+                name='bulletpoint',
+                fontName=get_font('regular'),
+                fontSize=10,
+                leftIndent=14
+            )
             anchor += 20
             for info in question["information"]:
-                information = Paragraph(info, getSampleStyleSheet()['Normal'], bulletText="●")
-                w, h = information.wrap(595.27, anchor)
+                information = Paragraph(info, info_style, bulletText="●")
+                w, h = information.wrap(500, anchor)
                 anchor -= h + 10
                 information.drawOn(canvas, 45, anchor)
             anchor -= 20
@@ -104,10 +121,10 @@ def run():
     for font in fonts:
         pdfmetrics.registerFont(TTFont(get_font(font), font_path.format(font)))
 
-    draw_header(canvas)
-    draw_personal_info(canvas)
-    draw_date(canvas)
-    draw_questions(canvas)
+    h = draw_header(canvas)
+    draw_personal_info(canvas, anchor=h-50)
+    draw_date(canvas, anchor=h-50)
+    draw_questions(canvas, anchor=h-117)
     draw_application_id(canvas)
 
     canvas.showPage()
