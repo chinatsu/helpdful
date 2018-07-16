@@ -41,3 +41,42 @@ data = {
         }
     ],
 }
+
+theme = {
+    "footer": {
+        "height": 20,
+    },
+    "page_margin": 40,
+    "header": {
+        "background": (0.2146, 0.0526, 0.0, 0.0314),
+        "logo": {
+            "scale": 0.8,
+            "margin_right": 4,
+        },
+        "color": (0, 0, 0, 1),
+        "font_size": 16,
+        "font_weight": "700",
+        "base_height": 43,
+        "margin_bottom": 40,
+    },
+    "information": {
+        "name": {
+            "font_size": 14,
+            "font_weight": "700",
+        },
+        "id": {
+            "font_size": 12,
+            "font_weight": "regular",
+        },
+        "date": {
+            "font_size": 8,
+            "font_weight": "regular",
+        }
+    },
+    "icon_margin": 10,
+    "images": {
+        "logo": "resources/Navlogo.svg",
+        "person": "resources/Personikon.svg",
+        "checkboks": "resources/Checkboks.svg",
+    }
+}
