@@ -1,32 +1,93 @@
 from datetime import datetime
 
 data = {
-    "title": "Søknad om å beholde sykepenger utenfor Norge",
-    "date": datetime(2017, 2, 1),
-    "application_id": "3c87f6e2-66ee-4376-9d4d-2444dea8368e",
-    "person": {"id": 12068745698, "name": "Kari Normann Paulsrud Granholt"},
-    "questions": [
+    # fields that i'm missing :(
+    "person": {"name": "Kari Normann Paulsrud Granholt", "id": 12068745698},
+    # mockup data of application
+    "id": "bea4a339-5740-4f96-9e72-0ddef4d4dfeb",
+    "sykmeldingId": None,
+    "soknadstype": "OPPHOLD_UTLAND",
+    "status": "SEND",
+    "fom": None,
+    "tom": None,
+    "opprettetDato": "2018-07-10",
+    "sporsmal": [
         {
-            "text": "Når skal du oppholde deg utenfor Norge?",
-            "type": "PERIODER",
-            "answer": "01.01.2017 – 31.01.2017",
-        },
-        {
-            "text": "Hvilket land skal du reise til?",
-            "type": "LAND",
-            "answer": "Tyskland",
-        },
-        {"text": "Har du arbeidsgiver?", "type": "CHECKBOKS", "answer": "Ja"},
-        {"text": "Er du 100% sykmeldt?", "type": "CHECKBOKS", "answer": "Ja"},
-        {
-            "text": "Før du reiser må du bekrefte at",
-            "information": [
-                "Oppholdet utenfor Norge ikke medfører at helsetilstanden din blir forverret",
-                "Oppholdet utenfor Norge ikke vil forlenge arbeidsuførheten din eller hindre planlagt behandling",
-                "Du har avklart dette med sykmelderen din",
+            "id": "100",
+            "tag": "PERIODEUTLAND",
+            "sporsmalstekst": "Når skal du være utenfor Norge?",
+            "undertekst": None,
+            "svartype": "PERIODER",
+            "min": "2018-04-10",
+            "max": "2019-01-10",
+            "kriterieForVisningAvUndersporsmal": None,
+            "svar": [
+                {"svarverdiType": "FOM", "verdi": "2018-06-04"},
+                {"svarverdiType": "TOM", "verdi": "2018-07-04"},
             ],
-            "type": "IKKE_RELEVANT",
-            "answer": "Jeg bekrefter at jeg har gjort med kjent med pliktene mine",
+            "undersporsmal": [],
+        },
+        {
+            "id": "101",
+            "tag": "LAND",
+            "sporsmalstekst": "Hvilket land skal du reise til?",
+            "undertekst": None,
+            "svartype": "FRITEKST",
+            "min": None,
+            "max": None,
+            "kriterieForVisningAvUndersporsmal": None,
+            "svar": [{"svarverdiType": None, "verdi": "TEST"}],
+            "undersporsmal": [],
+        },
+        {
+            "id": "102",
+            "tag": "ARBEIDSGIVER",
+            "sporsmalstekst": "Har du arbeidsgiver?",
+            "undertekst": None,
+            "svartype": "JA_NEI",
+            "min": None,
+            "max": None,
+            "kriterieForVisningAvUndersporsmal": "JA",
+            "svar": [{"svarverdiType": None, "verdi": "JA"}],
+            "undersporsmal": [
+                {
+                    "id": "103",
+                    "tag": "SYKMELDINGSGRAD",
+                    "sporsmalstekst": "Er du 100% sykmeldt?",
+                    "undertekst": None,
+                    "svartype": "JA_NEI",
+                    "min": None,
+                    "max": None,
+                    "kriterieForVisningAvUndersporsmal": None,
+                    "svar": [{"svarverdiType": None, "verdi": "JA"}],
+                    "undersporsmal": [],
+                }
+            ],
+        },
+        {
+            "id": "104",
+            "tag": "BEKREFT_OPPLYSNINGER_UTLAND_INFO",
+            "sporsmalstekst": "Før du reiser trenger vi denne bekreftelsen fra deg",
+            "undertekst": "<ul>\n    <li>Reisen vil ikke gjøre at jeg blir dårligere</li>\n    <li>Reisen vil ikke gjøre at sykefraværet blir lengre</li>\n    <li>Reisen vil ikke hindre planlagt behandling eller oppfølging</li>\n</ul>",
+            "svartype": "IKKE_RELEVANT",
+            "min": None,
+            "max": None,
+            "kriterieForVisningAvUndersporsmal": None,
+            "svar": [],
+            "undersporsmal": [
+                {
+                    "id": "105",
+                    "tag": "BEKREFT_OPPLYSNINGER_UTLAND",
+                    "sporsmalstekst": "Jeg har lest all informasjonen jeg har fått i søknaden og bekrefter at opplysningene jeg har gitt er korrekte.",
+                    "undertekst": None,
+                    "svartype": "CHECKBOX_PANEL",
+                    "min": None,
+                    "max": None,
+                    "kriterieForVisningAvUndersporsmal": None,
+                    "svar": [{"svarverdiType": None, "verdi": "CHECKED"}],
+                    "undersporsmal": [],
+                }
+            ],
         },
     ],
 }

@@ -6,6 +6,7 @@ from reportlab.lib.colors import CMYKColor
 from svglib.svglib import svg2rlg
 from reportlab.pdfgen import canvas as canv
 from helpdful import test_data, styles, utils
+from bs4 import BeautifulSoup
 
 
 class Helpdful:
@@ -30,7 +31,7 @@ class Helpdful:
     def render(self):
         self._create_new_page()
         self._draw_subheader()
-        self.draw_questions()
+        self._draw_questions()
         self.canvas.showPage()
         self.canvas.save()
 
@@ -56,7 +57,9 @@ class Helpdful:
         )
 
         # create a paragraph to calculate header height later
-        header = Paragraph(self.data["title"], self.style["header"])
+        header = Paragraph(
+            utils.type_to_title(self.data["soknadstype"]), self.style["header"]
+        )
         header_text_boundary = self.page_width - (
             (self.theme["page_margin"] * 2)
             + scaled_nav_logo.width
@@ -92,7 +95,7 @@ class Helpdful:
         self.y_position -= self.theme["header"]["margin_bottom"]
 
     def _draw_subheader(self):
-        date_string = self.data["date"].strftime("%d.%m.%y")
+        date_string = utils.isostr_to_norwegian(self.data["opprettetDato"])
         date = Paragraph("Sendt til NAV {}".format(date_string), self.style["date"])
         date_w, date_h = date.wrap(
             self.page_width - 410, self.theme["information"]["name"]["font_size"]
@@ -137,43 +140,70 @@ class Helpdful:
         id.wrap(name_width_boundary, self.theme["information"]["id"]["font_size"])
         id.drawOn(self.canvas, text_x, self.y_position)
 
-    def draw_questions(self):
-        # TODO: Fix this function to use self.y_position instead of anchor
-        anchor = self.y_position - self.theme["header"]["margin_bottom"] - 20
+    def __process_question(self, question):
+        # TODO: ... make this function pretty
         self.canvas.setFillColor(CMYKColor(0, 0, 0, 1))
 
-        for question in self.data["questions"]:
-            self.canvas.setFont(utils.get_font(600), 10)
-            self.canvas.drawString(40, anchor + 16, question["text"])
+        self.canvas.setFont(utils.get_font(600), 10)
+        if not question["svartype"] == "CHECKBOX_PANEL":
+            self.canvas.drawString(
+                self.theme["page_margin"],
+                self.y_position + 16,
+                question["sporsmalstekst"],
+            )
+        if question["svartype"] == "PERIODER":
+            self.canvas.setFont(utils.get_font(600), 14)
+            answer = "{}–{}".format(
+                utils.isostr_to_norwegian(question["svar"][0]["verdi"]),
+                utils.isostr_to_norwegian(question["svar"][1]["verdi"]),
+            )
+            self.canvas.drawString(40, self.y_position, answer)
+        elif question["svartype"] == "JA_NEI":
+            checkbox_icon = svg2rlg("helpdful/resources/Checkboks.svg")
+            renderPDF.draw(checkbox_icon, self.canvas, 40, self.y_position - 3)
+            self.canvas.setFont(utils.get_font("regular"), 10)
+            self.canvas.drawString(
+                60, self.y_position, question["svar"][0]["verdi"].capitalize()
+            )
+        elif question["svartype"] == "IKKE_RELEVANT":
+            self.y_position += 20
+            text = BeautifulSoup(question["undertekst"], "lxml")
+            for info in text.find_all("li"):
+                information = Paragraph(info.text, self.style["info"], bulletText="●")
+                w, h = information.wrap(500, self.y_position)
+                self.y_position -= h + 10
+                information.drawOn(self.canvas, 45, self.y_position)
+            self.y_position -= 20
+        elif question["svartype"] == "CHECKBOX_PANEL":
+            self.canvas.setFont(utils.get_font("regular"), 10)
+            self.canvas.drawString(60, self.y_position, question["sporsmalstekst"])
+            checkbox_icon = svg2rlg("helpdful/resources/Checkboks.svg")
+            renderPDF.draw(
+                checkbox_icon,
+                self.canvas,
+                self.theme["page_margin"],
+                self.y_position - 3,
+            )
+        else:
+            self.canvas.setFont(utils.get_font("regular"), 10)
+            self.canvas.drawString(40, self.y_position, question["svar"][0]["verdi"])
 
-            if question["type"] == "PERIODER":
-                self.canvas.setFont(utils.get_font(600), 14)
-                self.canvas.drawString(40, anchor, question["answer"])
-            elif question["type"] == "CHECKBOKS":
-                checkbox_icon = svg2rlg("helpdful/resources/Checkboks.svg")
-                renderPDF.draw(checkbox_icon, self.canvas, 40, anchor - 3)
-                self.canvas.setFont(utils.get_font("regular"), 10)
-                self.canvas.drawString(60, anchor, question["answer"])
-            elif question["type"] == "IKKE_RELEVANT":
+        if not question["svartype"] == "IKKE_RELEVANT":
+            self.y_position -= 50
+            if self.needs_next_page(50 + self.theme["footer"]["height"]):
+                self.canvas.showPage()
+                self._create_new_page()
 
-                anchor += 20
-                for info in question["information"]:
-                    information = Paragraph(info, self.style["info"], bulletText="●")
-                    w, h = information.wrap(500, anchor)
-                    anchor -= h + 10
-                    information.drawOn(self.canvas, 45, anchor)
-                anchor -= 20
-                checkbox_icon = svg2rlg("helpdful/resources/Checkboks.svg")
-                renderPDF.draw(checkbox_icon, self.canvas, 40, anchor - 3)
-                self.canvas.setFont(utils.get_font("regular"), 10)
-                self.canvas.drawString(60, anchor, question["answer"])
-            else:
-                self.canvas.setFont(utils.get_font("regular"), 10)
-                self.canvas.drawString(40, anchor, question["answer"])
-            anchor -= 50
+        for subquestion in question["undersporsmal"]:
+            self.__process_question(subquestion)
+
+    def _draw_questions(self):
+        self.y_position -= self.theme["header"]["margin_bottom"] + 20
+        for question in self.data["sporsmal"]:
+            self.__process_question(question)
 
     def _draw_footer(self):
-        footer = Paragraph(self.data["application_id"], self.style["footer"])
+        footer = Paragraph(self.data["id"], self.style["footer"])
         page_counter = Paragraph("Side {}".format(self.page), self.style["footer"])
         w, h = page_counter.wrap(20, self.theme["footer"]["height"])
         page_counter.drawOn(
