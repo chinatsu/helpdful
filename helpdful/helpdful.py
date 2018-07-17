@@ -51,7 +51,7 @@ class Helpdful:
     def _draw_header(self):
         # load the header logo and get its width for later
         nav_logo = svg2rlg("helpdful/{}".format(self.theme["images"]["logo"]))
-        scaled_nav_logo, logo_width = utils.scale(
+        scaled_nav_logo = utils.scale(
             nav_logo, scaling_factor=self.theme["header"]["logo"]["scale"]
         )
 
@@ -59,7 +59,7 @@ class Helpdful:
         header = Paragraph(self.data["title"], self.style["header"])
         header_text_boundary = self.page_width - (
             (self.theme["page_margin"] * 2)
-            + logo_width
+            + scaled_nav_logo.width
             + self.theme["header"]["logo"]["margin_right"]
         )
         w, h = header.wrap(header_text_boundary, self.theme["header"]["base_height"])
@@ -85,7 +85,7 @@ class Helpdful:
         header.drawOn(
             self.canvas,
             self.theme["page_margin"]
-            + logo_width
+            + scaled_nav_logo.width
             + self.theme["header"]["logo"]["margin_right"],
             820 - h,
         )  # TODO: Fix magical value 820 :(
@@ -100,10 +100,11 @@ class Helpdful:
         date.drawOn(self.canvas, 410, self.y_position)  # TODO: Fix magical value 410 :(
 
         person_icon = svg2rlg("helpdful/{}".format(self.theme["images"]["person"]))
-        _, icon_width = utils.scale(person_icon, 1)
 
         # the position at which the text next to the icon should be drawn
-        text_x = self.theme["page_margin"] + icon_width + self.theme["icon_margin"]
+        text_x = (
+            self.theme["page_margin"] + person_icon.width + self.theme["icon_margin"]
+        )
 
         name_width_boundary = (
             self.page_width - ((self.theme["page_margin"] * 2)) - date_w

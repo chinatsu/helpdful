@@ -9,4 +9,4 @@ def scale(drawing, scaling_factor):
     drawing.width = drawing.minWidth() * scaling_factor
     drawing.height = drawing.height * scaling_factor
     drawing.scale(scaling_factor, scaling_factor)
-    return drawing, drawing.width
+    return drawing
