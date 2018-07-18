@@ -15,8 +15,14 @@ to keep the project isolated.
   * `. bin/activate.fish` for Fish
   * `source bin/activate.csh` for Csh/Tcsh
 4. Run `pip install -e .` to install the module and its dependencies
-5. Run `python -m helpdful` to run the script and generate a file
-named `test.pdf`
+5. Run `python -m helpdful` to spin up a simple web server which will
+serve you a PDF at localhost:3000!
+
+### The alternate way
+
+If you have Docker installed, you can simply clone this repository and
+run `docker build -t helpdful .` and `docker run -itp 3000:3000 helpdful`
+to easily run the web server as described above.
 
 ### Recommendations
 
