@@ -7,16 +7,19 @@ from svglib.svglib import svg2rlg
 from reportlab.pdfgen import canvas as canv
 from helpdful import test_data, styles, utils
 from bs4 import BeautifulSoup
+from io import BytesIO
 
 
 class Helpdful:
     def __init__(self, name="test.pdf", data=test_data.data, theme=test_data.theme):
+        self.buffer = BytesIO()
         self.data = data
         self.theme = theme
         self.style = styles.StyleContainer(self.theme)
         self.name = name
-        self.canvas = canv.Canvas(self.name)
+        self.canvas = canv.Canvas(self.buffer)
         self.canvas.setPageCompression(0)
+        self.canvas.setTitle(name)
         self.page_width, self.page_height = self.canvas._pagesize
         self.page = 1
         self.y_position = self.page_height  # goes from top to bottom of the page
@@ -34,6 +37,7 @@ class Helpdful:
         self._draw_questions()
         self.canvas.showPage()
         self.canvas.save()
+        return self.buffer.getvalue()
 
     def needs_next_page(self, next_paragraph_height):
         absolute_height = (
@@ -155,7 +159,7 @@ class Helpdful:
                 self.theme["question"]["header"]["font_size"],
             )
             infoheader.drawOn(self.canvas, self.theme["page_margin"], self.y_position)
-            self.y_position -= info_h
+            self.y_position -= info_h + 5
 
         if question["svartype"] == "PERIODER":
             answer = "{}–{}".format(
@@ -169,7 +173,7 @@ class Helpdful:
                 checkbox_icon,
                 self.canvas,
                 self.theme["page_margin"],
-                self.y_position - 3,
+                self.y_position + self.theme["icon_offset"],
             )
             answer = question["svar"][0]["verdi"].capitalize()
 
@@ -197,7 +201,7 @@ class Helpdful:
                 checkbox_icon,
                 self.canvas,
                 self.theme["page_margin"],
-                self.y_position - 3,
+                self.y_position + self.theme["icon_offset"],
             )
             answer = question["sporsmalstekst"]
 
