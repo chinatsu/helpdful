@@ -145,38 +145,25 @@ class Helpdful:
         self.canvas.setFillColor(CMYKColor(0, 0, 0, 1))
 
         self.canvas.setFont(utils.get_font(600), 10)
+
+        answer = None
+
         if not question["svartype"] == "CHECKBOX_PANEL":
-            self.canvas.drawString(
-                self.theme["page_margin"],
-                self.y_position + 16,
-                question["sporsmalstekst"],
+            infoheader = Paragraph(question["sporsmalstekst"], self.style["infoheader"])
+            info_w, info_h = infoheader.wrap(
+                self.page_width - (self.theme["page_margin"] * 2),
+                self.theme["question"]["header"]["font_size"],
             )
+            infoheader.drawOn(self.canvas, self.theme["page_margin"], self.y_position)
+            self.y_position -= info_h
+
         if question["svartype"] == "PERIODER":
-            self.canvas.setFont(utils.get_font(600), 14)
             answer = "{}–{}".format(
                 utils.isostr_to_norwegian(question["svar"][0]["verdi"]),
                 utils.isostr_to_norwegian(question["svar"][1]["verdi"]),
             )
-            self.canvas.drawString(40, self.y_position, answer)
+
         elif question["svartype"] == "JA_NEI":
-            checkbox_icon = svg2rlg("helpdful/resources/Checkboks.svg")
-            renderPDF.draw(checkbox_icon, self.canvas, 40, self.y_position - 3)
-            self.canvas.setFont(utils.get_font("regular"), 10)
-            self.canvas.drawString(
-                60, self.y_position, question["svar"][0]["verdi"].capitalize()
-            )
-        elif question["svartype"] == "IKKE_RELEVANT":
-            self.y_position += 20
-            text = BeautifulSoup(question["undertekst"], "lxml")
-            for info in text.find_all("li"):
-                information = Paragraph(info.text, self.style["info"], bulletText="●")
-                w, h = information.wrap(500, self.y_position)
-                self.y_position -= h + 10
-                information.drawOn(self.canvas, 45, self.y_position)
-            self.y_position -= 20
-        elif question["svartype"] == "CHECKBOX_PANEL":
-            self.canvas.setFont(utils.get_font("regular"), 10)
-            self.canvas.drawString(60, self.y_position, question["sporsmalstekst"])
             checkbox_icon = svg2rlg("helpdful/resources/Checkboks.svg")
             renderPDF.draw(
                 checkbox_icon,
@@ -184,13 +171,54 @@ class Helpdful:
                 self.theme["page_margin"],
                 self.y_position - 3,
             )
+            answer = question["svar"][0]["verdi"].capitalize()
+
+        elif question["svartype"] == "IKKE_RELEVANT":
+            # TODO: make this answer type behave properly at the end of pages
+            self.y_position += 20
+            style = self.style["svartype"][question["svartype"]]
+            text = BeautifulSoup(question["undertekst"], "lxml")
+            for info in text.find_all("li"):
+                information = Paragraph(info.text, style, bulletText="●")
+                w, h = information.wrap(
+                    self.page_width
+                    - style.leftIndent
+                    - (self.theme["page_margin"] * 2),
+                    self.y_position,
+                )
+                self.y_position -= h + 10
+                information.drawOn(self.canvas, 45, self.y_position)
+            self.y_position -= 20
+            answer = ""
+
+        elif question["svartype"] == "CHECKBOX_PANEL":
+            checkbox_icon = svg2rlg("helpdful/resources/Checkboks.svg")
+            renderPDF.draw(
+                checkbox_icon,
+                self.canvas,
+                self.theme["page_margin"],
+                self.y_position - 3,
+            )
+            answer = question["sporsmalstekst"]
+
         else:
-            self.canvas.setFont(utils.get_font("regular"), 10)
-            self.canvas.drawString(40, self.y_position, question["svar"][0]["verdi"])
+            answer = question["svar"][0]["verdi"]
+
+        answer_paragraph = Paragraph(
+            answer, self.style["svartype"][question["svartype"]]
+        )
+        answer_paragraph_w, answer_paragraph_h = answer_paragraph.wrap(
+            self.page_width - (self.theme["page_margin"] * 2),
+            self.theme["question"]["svartype"][question["svartype"]],
+        )
+        answer_paragraph.drawOn(self.canvas, self.theme["page_margin"], self.y_position)
+        self.y_position -= answer_paragraph_h
 
         if not question["svartype"] == "IKKE_RELEVANT":
-            self.y_position -= 50
-            if self.needs_next_page(50 + self.theme["footer"]["height"]):
+            self.y_position -= 20
+            if self.needs_next_page(
+                20 + self.theme["footer"]["height"] + answer_paragraph_h
+            ):
                 self.canvas.showPage()
                 self._create_new_page()
 

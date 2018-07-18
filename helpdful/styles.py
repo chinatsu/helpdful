@@ -37,13 +37,30 @@ class StyleContainer:
             fontSize=self.theme["information"]["name"]["font_size"],
         )
 
-        self.style["info"] = ParagraphStyle(
-            name="bulletpoint",
-            fontName=utils.get_font("regular"),
-            fontSize=10,
-            leftIndent=14,
+        self.style["infoheader"] = ParagraphStyle(
+            name="infoheader",
+            fontName=utils.get_font(self.theme["question"]["header"]["font_weight"]),
+            fontSize=self.theme["question"]["header"]["font_size"],
         )
 
         self.style["footer"] = ParagraphStyle(
             name="footer", fontName=utils.get_font("regular"), fontSize=7
         )
+
+        self.style["svartype"] = {}
+
+        for answer_type in utils.answer_types:
+            if "padding_left" in self.theme["question"]["svartype"][answer_type]:
+                leftIndent = self.theme["question"]["svartype"][answer_type][
+                    "padding_left"
+                ]
+            else:
+                leftIndent = 0
+            self.style["svartype"][answer_type] = ParagraphStyle(
+                name="PERIODER",
+                fontName=utils.get_font(
+                    self.theme["question"]["svartype"][answer_type]["font_weight"]
+                ),
+                fontSize=self.theme["question"]["svartype"][answer_type]["font_size"],
+                leftIndent=leftIndent,
+            )

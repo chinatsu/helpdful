@@ -2,6 +2,8 @@ from datetime import datetime
 
 font_path = "helpdful/resources/fonts/source-sans-pro-v11-latin-{}.ttf"
 
+answer_types = ["PERIODER", "FRITEKST", "JA_NEI", "IKKE_RELEVANT", "CHECKBOX_PANEL"]
+
 
 def get_font(style):
     return "source-sans-pro-v11-latin-{}".format(style)
